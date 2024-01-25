@@ -31,3 +31,6 @@
 
 # Screenshot
 <img width="1512" alt="Screenshot 2024-01-24 at 10 48 50 PM" src="https://github.com/mfhooks88/employee-tracker/assets/152635274/0a067418-6be3-4923-9cf4-15b77f76be6d">
+
+# Screen Recording
+https://drive.google.com/file/d/1voSu8DGzSNuBdWTuyM_5aYNIlf417JPy/view
