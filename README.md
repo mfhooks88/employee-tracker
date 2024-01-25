@@ -25,7 +25,8 @@
 * THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 
 # Notes
-* This was a challenging but fun app to build. 
+* This was a challenging but fun app to build. With this app the user will be able to view data for employees, departments and managers, while also being able to make any changes needed. 
+* This app utilized material learned regarding SQL. A video is provided below in regards to its functionality.
 * Help was provided during tutoring session, as well as AskBCS sessions.
 * Also utilized prior classwork material and W3 Schools for reference
 
