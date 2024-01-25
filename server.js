@@ -76,6 +76,7 @@ function startApp() {
         'Add a department',
         'Add a role',
         'Add an employee',
+        'Update an employee role',
         'Exit',
       ],
     })
@@ -99,7 +100,9 @@ function startApp() {
         case 'Add an employee':
           addEmployee();
           break;
-        // Add cases for other options...
+        case 'Update an employee role':
+          updateEmployeeRole();
+          break;
         case 'Exit':
           console.log('Exiting application.');
           connection.end();
@@ -124,11 +127,20 @@ function viewAllDepartments() {
     });
 }
 
+// help was provided during AskBCS session
 // Function to handle viewing all roles
 function viewAllRoles() {
   connection
     .promise()
-    .query('SELECT * FROM role')
+    .query(`
+      SELECT 
+        r.id AS role_id,
+        r.title AS job_title,
+        r.salary,
+        d.name AS department
+      FROM role r
+      JOIN department d ON r.department_id = d.id
+    `)
     .then((results) => {
       console.table(results[0]);
       startApp(); // Return to main menu
@@ -139,11 +151,25 @@ function viewAllRoles() {
     });
 }
 
+// help was provided during AskBCS session
 // Function to handle viewing all employees
 function viewAllEmployees() {
   connection
     .promise()
-    .query('SELECT * FROM employee')
+    .query(`
+      SELECT 
+        e.id AS employee_id,
+        e.first_name,
+        e.last_name,
+        r.title AS job_title,
+        d.name AS department,
+        r.salary,
+        CONCAT(m.first_name, ' ', m.last_name) AS manager_name
+      FROM employee e
+      JOIN role r ON e.role_id = r.id
+      JOIN department d ON r.department_id = d.id
+      LEFT JOIN employee m ON e.manager_id = m.id
+    `)
     .then((results) => {
       console.table(results[0]);
       startApp(); // Return to main menu
@@ -242,7 +268,7 @@ function addEmployee() {
     ])
     .then((answers) => {
       const { first_name, last_name, role_id, manager_id } = answers;
-      
+
       // Convert manager_id to NULL if not provided
       const managerIdValue = manager_id || null;
 
@@ -257,6 +283,55 @@ function addEmployee() {
           console.error('Error adding employee:', err);
           startApp(); // Return to main menu
         });
+    });
+}
+
+// Function to handle updating an employee's role
+function updateEmployeeRole() {
+  let employees; // Define employees variable here
+
+  // Fetch the list of employees to display for user selection
+  connection
+    .promise()
+    .query('SELECT id, CONCAT(first_name, " ", last_name) AS full_name FROM employee')
+    .then((employeeResults) => {
+      employees = employeeResults[0]; // Assign employee results to the variable
+
+      // Fetch the list of roles to display for user selection
+      return connection.promise().query('SELECT id, title FROM role');
+    })
+    .then((roleResults) => {
+      const roles = roleResults[0];
+
+      // Prompt the user to select an employee and a new role
+      return inquirer.prompt([
+        {
+          type: 'list',
+          name: 'employeeId',
+          message: 'Select the employee to update:',
+          choices: employees.map((employee) => ({ name: employee.full_name, value: employee.id })),
+        },
+        {
+          type: 'list',
+          name: 'roleId',
+          message: 'Select the new role for the employee:',
+          choices: roles.map((role) => ({ name: role.title, value: role.id })),
+        },
+      ]);
+    })
+    .then((answers) => {
+      const { employeeId, roleId } = answers;
+
+      // Update the employee's role in the database
+      return connection.promise().query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, employeeId]);
+    })
+    .then(() => {
+      console.log('Employee role updated successfully!');
+      startApp(); // Return to main menu
+    })
+    .catch((err) => {
+      console.error('Error updating employee role:', err);
+      startApp(); // Return to main menu
     });
 }
 
